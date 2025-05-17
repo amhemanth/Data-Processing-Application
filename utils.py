@@ -2,6 +2,7 @@ import os
 from PIL import Image
 import numpy as np
 import librosa
+import soundfile as sf
 import trimesh
 from typing import Union, Tuple, Any
 import json
@@ -27,7 +28,9 @@ def load_data(file_path: str) -> Tuple[str, Any]:
     if file_type == 'image':
         return file_type, Image.open(file_path)
     elif file_type == 'audio':
-        return file_type, librosa.load(file_path)
+        # Load audio with a lower sample rate and shorter duration for faster processing
+        audio, sr = librosa.load(file_path, sr=16000, duration=30)
+        return file_type, (audio, sr)
     elif file_type == '3d':
         return file_type, trimesh.load(file_path)
     elif file_type == 'text':
@@ -44,11 +47,10 @@ def preprocess_data(file_type: str, data: Any) -> Any:
         img = img.resize((224, 224))
         return img
     elif file_type == 'audio':
-        # Normalize audio and extract features
+        # Simple normalization only
         audio, sr = data
         audio = librosa.util.normalize(audio)
-        mfcc = librosa.feature.mfcc(y=audio, sr=sr)
-        return mfcc
+        return audio, sr
     elif file_type == '3d':
         # Center and normalize mesh
         mesh = data
@@ -73,11 +75,18 @@ def augment_data(file_type: str, data: Any) -> Any:
             img = img.transpose(Image.FLIP_LEFT_RIGHT)
         return img
     elif file_type == 'audio':
-        # Add noise and time stretching
+        # Simple audio augmentation
         audio, sr = data
+        
+        # Add small amount of noise
         noise = np.random.normal(0, 0.005, len(audio))
-        audio_noisy = audio + noise
-        return audio_noisy, sr
+        audio_augmented = audio + noise
+        
+        # Simple time stretching (just shift the audio)
+        shift = np.random.randint(-1000, 1000)
+        audio_augmented = np.roll(audio_augmented, shift)
+        
+        return audio_augmented, sr
     elif file_type == '3d':
         # Random rotation
         mesh = data.copy()
@@ -105,7 +114,8 @@ def save_processed_data(file_type: str, data: Any, output_path: str) -> str:
         data.save(output_path)
     elif file_type == 'audio':
         audio, sr = data
-        librosa.output.write_wav(output_path, audio, sr)
+        # Save directly using soundfile
+        sf.write(output_path, audio, sr)
     elif file_type == '3d':
         data.export(output_path)
     elif file_type == 'text':
