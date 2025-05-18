@@ -6,162 +6,584 @@
     <title>Data Processing Application</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
-        .container { max-width: 800px; margin-top: 50px; }
-        .card { margin-bottom: 20px; }
-        .preview-container { margin-top: 20px; }
-        .hidden { display: none; }
-        .preview-image { max-width: 100%; height: auto; }
-        .preview-audio { width: 100%; }
-        .preview-text { white-space: pre-wrap; }
+        .content-section {
+            display: none;
+        }
+        .content-section.active {
+            display: block;
+        }
+        .preview-container {
+            border: 1px solid #ddd;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 5px;
+        }
+        .preview-image {
+            max-width: 100%;
+            height: auto;
+        }
+        .waveform {
+            width: 100%;
+            height: 200px;
+            background: #f5f5f5;
+            margin: 10px 0;
+        }
+        .model-viewer {
+            width: 100%;
+            height: 300px;
+            background: #f5f5f5;
+            margin: 10px 0;
+        }
     </style>
 </head>
 <body>
-    <div class="container">
+    <div class="container mt-4">
         <h1 class="text-center mb-4">Data Processing Application</h1>
         
-        <!-- File Upload Section -->
-        <div class="card">
-            <div class="card-body">
-                <h5 class="card-title">Upload Data File</h5>
-                <form id="uploadForm" enctype="multipart/form-data">
-                    <div class="mb-3">
-                        <input type="file" class="form-control" id="fileInput" required>
-                        <div class="form-text">Supported formats: Images (.jpg, .png), Audio (.wav, .mp3), 3D (.off, .obj), Text (.txt, .json)</div>
-                    </div>
-                    <button type="submit" class="btn btn-primary">Upload</button>
-                </form>
-            </div>
-        </div>
+        <!-- Data Type Selection -->
+        <ul class="nav nav-tabs mb-4" id="dataTypeTabs" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link active" id="text-tab" data-bs-toggle="tab" data-bs-target="#text" type="button" role="tab" aria-controls="text" aria-selected="true">Text</button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="image-tab" data-bs-toggle="tab" data-bs-target="#image" type="button" role="tab" aria-controls="image" aria-selected="false">Image</button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="audio-tab" data-bs-toggle="tab" data-bs-target="#audio" type="button" role="tab" aria-controls="audio" aria-selected="false">Audio</button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="three-d-tab" data-bs-toggle="tab" data-bs-target="#three-d" type="button" role="tab" aria-controls="three-d" aria-selected="false">3D</button>
+            </li>
+        </ul>
 
-        <!-- Processing Controls -->
-        <div class="card hidden" id="processingControls">
-            <div class="card-body">
-                <h5 class="card-title">Process Data</h5>
-                <div class="d-flex gap-2">
-                    <button class="btn btn-success" id="preprocessBtn">Preprocess</button>
-                    <button class="btn btn-warning" id="augmentBtn">Augment</button>
+        <div class="tab-content" id="dataTypeTabContent">
+            <!-- Text Processing Section -->
+            <div class="tab-pane fade show active" id="text" role="tabpanel" aria-labelledby="text-tab">
+                <div class="row">
+                    <div class="col-md-4">
+                        <div class="card">
+                            <div class="card-body">
+                                <h5 class="card-title">Upload & Process</h5>
+                                <input type="file" class="form-control mb-3" accept=".txt" id="textFile">
+                                <h6>Preprocessing Options</h6>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" value="cleaning" id="textCleaning">
+                                    <label class="form-check-label" for="textCleaning">Text Cleaning</label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" value="stopwords" id="textStopwords">
+                                    <label class="form-check-label" for="textStopwords">Remove Stop Words</label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" value="lowercase" id="textLowercase">
+                                    <label class="form-check-label" for="textLowercase">Lowercase</label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" value="stemming" id="textStemming">
+                                    <label class="form-check-label" for="textStemming">Stemming</label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" value="lemmatization" id="textLemmatization">
+                                    <label class="form-check-label" for="textLemmatization">Lemmatization</label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" value="tokenization" id="textTokenization">
+                                    <label class="form-check-label" for="textTokenization">Tokenization</label>
+                                </div>
+                                <h6 class="mt-3">Augmentation Options</h6>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" value="synonym" id="textSynonym">
+                                    <label class="form-check-label" for="textSynonym">Synonym Replacement</label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" value="insertion" id="textInsertion">
+                                    <label class="form-check-label" for="textInsertion">Random Insertion</label>
+                                </div>
+                                <button class="btn btn-primary mt-3" onclick="processText()">Process</button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-8">
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div class="preview-container">
+                                    <h6>Original Text</h6>
+                                    <div id="originalText"></div>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="preview-container">
+                                    <h6>Preprocessed Text</h6>
+                                    <div id="preprocessedText"></div>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="preview-container">
+                                    <h6>Augmented Text</h6>
+                                    <div id="augmentedText"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
-        </div>
 
-        <!-- Preview Section -->
-        <div class="card hidden" id="previewSection">
-            <div class="card-body">
-                <h5 class="card-title">Data Preview</h5>
-                <div class="preview-container" id="previewContainer">
-                    <!-- Preview content will be inserted here -->
+            <!-- Image Processing Section -->
+            <div class="tab-pane fade" id="image" role="tabpanel" aria-labelledby="image-tab">
+                <div class="row">
+                    <div class="col-md-4">
+                        <div class="card">
+                            <div class="card-body">
+                                <h5 class="card-title">Upload & Process</h5>
+                                <input type="file" class="form-control mb-3" accept="image/*" id="imageFile">
+                                <h6>Preprocessing Options</h6>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" value="resize" id="imageResize">
+                                    <label class="form-check-label" for="imageResize">Resizing</label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" value="normalize" id="imageNormalize">
+                                    <label class="form-check-label" for="imageNormalize">Normalization</label>
+                                </div>
+                                <h6 class="mt-3">Augmentation Options</h6>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" value="flip" id="imageFlip">
+                                    <label class="form-check-label" for="imageFlip">Random Horizontal Flip</label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" value="jitter" id="imageJitter">
+                                    <label class="form-check-label" for="imageJitter">Color Jitter</label>
+                                </div>
+                                <button class="btn btn-primary mt-3" onclick="processImage()">Process</button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-8">
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div class="preview-container">
+                                    <h6>Original Image</h6>
+                                    <img id="originalImage" class="preview-image">
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="preview-container">
+                                    <h6>Preprocessed Image</h6>
+                                    <img id="preprocessedImage" class="preview-image">
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="preview-container">
+                                    <h6>Augmented Image</h6>
+                                    <img id="augmentedImage" class="preview-image">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Audio Processing Section -->
+            <div class="tab-pane fade" id="audio" role="tabpanel" aria-labelledby="audio-tab">
+                <div class="row">
+                    <div class="col-md-4">
+                        <div class="card">
+                            <div class="card-body">
+                                <h5 class="card-title">Upload & Process</h5>
+                                <input type="file" class="form-control mb-3" accept="audio/*" id="audioFile">
+                                <h6>Preprocessing Options</h6>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" value="resample" id="audioResample">
+                                    <label class="form-check-label" for="audioResample">Resampling</label>
+                                </div>
+                                <h6 class="mt-3">Augmentation Options</h6>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" value="noise" id="audioNoise">
+                                    <label class="form-check-label" for="audioNoise">Add Background Noise</label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" value="stretch" id="audioStretch">
+                                    <label class="form-check-label" for="audioStretch">Time Stretching</label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" value="pitch" id="audioPitch">
+                                    <label class="form-check-label" for="audioPitch">Pitch Shifting</label>
+                                </div>
+                                <button class="btn btn-primary mt-3" onclick="processAudio()">Process</button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-8">
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div class="preview-container">
+                                    <h6>Original Audio</h6>
+                                    <div id="originalAudio" class="waveform"></div>
+                                    <img id="originalSpectrogram" class="preview-image">
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="preview-container">
+                                    <h6>Preprocessed Audio</h6>
+                                    <div id="preprocessedAudio" class="waveform"></div>
+                                    <img id="preprocessedSpectrogram" class="preview-image">
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="preview-container">
+                                    <h6>Augmented Audio</h6>
+                                    <div id="augmentedAudio" class="waveform"></div>
+                                    <img id="augmentedSpectrogram" class="preview-image">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 3D Processing Section -->
+            <div class="tab-pane fade" id="three-d" role="tabpanel" aria-labelledby="three-d-tab">
+                <div class="row">
+                    <div class="col-md-4">
+                        <div class="card">
+                            <div class="card-body">
+                                <h5 class="card-title">Upload & Process</h5>
+                                <input type="file" class="form-control mb-3" accept=".obj,.off" id="3dFile">
+                                <h6>Preprocessing Options</h6>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" value="normalize" id="3dNormalize">
+                                    <label class="form-check-label" for="3dNormalize">Normalize</label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" value="center" id="3dCenter">
+                                    <label class="form-check-label" for="3dCenter">Centering</label>
+                                </div>
+                                <h6 class="mt-3">Augmentation Options</h6>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" value="scale" id="3dScale">
+                                    <label class="form-check-label" for="3dScale">Scaling</label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" value="noise" id="3dNoise">
+                                    <label class="form-check-label" for="3dNoise">Noise</label>
+                                </div>
+                                <button class="btn btn-primary mt-3" onclick="process3D()">Process</button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-8">
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div class="preview-container">
+                                    <h6>Original 3D Model</h6>
+                                    <div id="original3D" class="model-viewer"></div>
+                                    <div class="row mt-2">
+                                        <div class="col-4">
+                                            <img id="original3DView0" class="img-fluid" alt="Front view">
+                                        </div>
+                                        <div class="col-4">
+                                            <img id="original3DView1" class="img-fluid" alt="Side view">
+                                        </div>
+                                        <div class="col-4">
+                                            <img id="original3DView2" class="img-fluid" alt="Top view">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="preview-container">
+                                    <h6>Preprocessed 3D Model</h6>
+                                    <div id="preprocessed3D" class="model-viewer"></div>
+                                    <div class="row mt-2">
+                                        <div class="col-4">
+                                            <img id="preprocessed3DView0" class="img-fluid" alt="Front view">
+                                        </div>
+                                        <div class="col-4">
+                                            <img id="preprocessed3DView1" class="img-fluid" alt="Side view">
+                                        </div>
+                                        <div class="col-4">
+                                            <img id="preprocessed3DView2" class="img-fluid" alt="Top view">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="preview-container">
+                                    <h6>Augmented 3D Model</h6>
+                                    <div id="augmented3D" class="model-viewer"></div>
+                                    <div class="row mt-2">
+                                        <div class="col-4">
+                                            <img id="augmented3DView0" class="img-fluid" alt="Front view">
+                                        </div>
+                                        <div class="col-4">
+                                            <img id="augmented3DView1" class="img-fluid" alt="Side view">
+                                        </div>
+                                        <div class="col-4">
+                                            <img id="augmented3DView2" class="img-fluid" alt="Top view">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
 
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/wavesurfer.js@6.6.3"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.132.2/build/three.min.js"></script>
     <script>
-        let currentFileType = null;
+        // Initialize Bootstrap tabs
+        document.addEventListener('DOMContentLoaded', function() {
+            var triggerTabList = [].slice.call(document.querySelectorAll('#dataTypeTabs button'));
+            triggerTabList.forEach(function(triggerEl) {
+                var tabTrigger = new bootstrap.Tab(triggerEl);
+                triggerEl.addEventListener('click', function(event) {
+                    event.preventDefault();
+                    tabTrigger.show();
+                });
+            });
+        });
 
-        document.getElementById('uploadForm').addEventListener('submit', async (e) => {
-            e.preventDefault();
+        // Initialize WaveSurfer for audio visualization
+        const wavesurfer = WaveSurfer.create({
+            container: '.waveform',
+            waveColor: '#4F4A85',
+            progressColor: '#383351',
+            height: 100
+        });
+
+        // Function to handle text processing
+        async function processText() {
+            const file = document.getElementById('textFile').files[0];
+            if (!file) return;
+
             const formData = new FormData();
-            const fileInput = document.getElementById('fileInput');
-            formData.append('file', fileInput.files[0]);
+            formData.append('file', file);
 
-            try {
-                const response = await fetch('/upload', {
+            // Upload file
+            const uploadResponse = await fetch('/upload', {
+                method: 'POST',
+                body: formData
+            });
+            const uploadResult = await uploadResponse.json();
+
+            if (uploadResult.status === 'success') {
+                // Get preprocessing options
+                const preprocessingOptions = {
+                    cleaning: document.getElementById('textCleaning').checked,
+                    stopwords: document.getElementById('textStopwords').checked,
+                    lowercase: document.getElementById('textLowercase').checked,
+                    stemming: document.getElementById('textStemming').checked,
+                    lemmatization: document.getElementById('textLemmatization').checked,
+                    tokenization: document.getElementById('textTokenization').checked
+                };
+
+                // Get augmentation options
+                const augmentationOptions = {
+                    synonym: document.getElementById('textSynonym').checked,
+                    insertion: document.getElementById('textInsertion').checked
+                };
+
+                // Process the text
+                const processResponse = await fetch('/preprocess', {
                     method: 'POST',
-                    body: formData
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        preprocessing: preprocessingOptions,
+                        augmentation: augmentationOptions
+                    })
                 });
-                const data = await response.json();
-                if (data.status === 'success') {
-                    currentFileType = data.file_type;
-                    document.getElementById('processingControls').classList.remove('hidden');
-                    document.getElementById('previewSection').classList.remove('hidden');
-                    showSample('original');
-                } else {
-                    alert(data.error || 'Upload failed');
-                }
-            } catch (error) {
-                console.error('Error:', error);
-                alert('Upload failed');
-            }
-        });
 
-        document.getElementById('preprocessBtn').addEventListener('click', async () => {
-            try {
-                const response = await fetch('/preprocess', {
-                    method: 'POST'
+                const processResult = await processResponse.json();
+                if (processResult.status === 'success') {
+                    // Update previews
+                    document.getElementById('originalText').textContent = processResult.original;
+                    document.getElementById('preprocessedText').textContent = processResult.preprocessed;
+                    document.getElementById('augmentedText').textContent = processResult.augmented;
+                }
+            }
+        }
+
+        // Function to handle image processing
+        async function processImage() {
+            const file = document.getElementById('imageFile').files[0];
+            if (!file) return;
+
+            const formData = new FormData();
+            formData.append('file', file);
+
+            // Upload file
+            const uploadResponse = await fetch('/upload', {
+                method: 'POST',
+                body: formData
+            });
+            const uploadResult = await uploadResponse.json();
+
+            if (uploadResult.status === 'success') {
+                // Get preprocessing options
+                const preprocessingOptions = {
+                    resize: document.getElementById('imageResize').checked,
+                    normalize: document.getElementById('imageNormalize').checked
+                };
+
+                // Get augmentation options
+                const augmentationOptions = {
+                    flip: document.getElementById('imageFlip').checked,
+                    jitter: document.getElementById('imageJitter').checked
+                };
+
+                // Process the image
+                const processResponse = await fetch('/preprocess', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        preprocessing: preprocessingOptions,
+                        augmentation: augmentationOptions
+                    })
                 });
-                const data = await response.json();
-                if (data.status === 'success') {
-                    showSample('preprocessed');
-                } else {
-                    alert(data.error || 'Preprocessing failed');
-                }
-            } catch (error) {
-                console.error('Error:', error);
-                alert('Preprocessing failed');
-            }
-        });
 
-        document.getElementById('augmentBtn').addEventListener('click', async () => {
-            try {
-                const response = await fetch('/augment', {
-                    method: 'POST'
+                const processResult = await processResponse.json();
+                if (processResult.status === 'success') {
+                    // Update previews
+                    document.getElementById('originalImage').src = processResult.original;
+                    document.getElementById('preprocessedImage').src = processResult.preprocessed;
+                    document.getElementById('augmentedImage').src = processResult.augmented;
+                }
+            }
+        }
+
+        // Function to handle audio processing
+        async function processAudio() {
+            const file = document.getElementById('audioFile').files[0];
+            if (!file) return;
+
+            const formData = new FormData();
+            formData.append('file', file);
+
+            // Upload file
+            const uploadResponse = await fetch('/upload', {
+                method: 'POST',
+                body: formData
+            });
+            const uploadResult = await uploadResponse.json();
+
+            if (uploadResult.status === 'success') {
+                // Get preprocessing options
+                const preprocessingOptions = {
+                    resample: document.getElementById('audioResample').checked
+                };
+
+                // Get augmentation options
+                const augmentationOptions = {
+                    noise: document.getElementById('audioNoise').checked,
+                    stretch: document.getElementById('audioStretch').checked,
+                    pitch: document.getElementById('audioPitch').checked
+                };
+
+                // Process the audio
+                const processResponse = await fetch('/preprocess', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        preprocessing: preprocessingOptions,
+                        augmentation: augmentationOptions
+                    })
                 });
-                const data = await response.json();
-                if (data.status === 'success') {
-                    showSample('augmented');
-                } else {
-                    alert(data.error || 'Augmentation failed');
-                }
-            } catch (error) {
-                console.error('Error:', error);
-                alert('Augmentation failed');
-            }
-        });
 
-        async function showSample(stage) {
-            try {
-                const response = await fetch(`/sample/${stage}`);
-                if (!response.ok) {
-                    const error = await response.json();
-                    throw new Error(error.error || 'Failed to load sample');
+                const processResult = await processResponse.json();
+                if (processResult.status === 'success') {
+                    // Update previews
+                    wavesurfer.load(processResult.original);
+                    document.getElementById('originalSpectrogram').src = processResult.original_spectrogram;
+                    document.getElementById('preprocessedSpectrogram').src = processResult.preprocessed_spectrogram;
+                    document.getElementById('augmentedSpectrogram').src = processResult.augmented_spectrogram;
                 }
-
-                const blob = await response.blob();
-                const previewContainer = document.getElementById('previewContainer');
-                
-                // Clear previous preview
-                previewContainer.innerHTML = '';
-                
-                // Create preview based on file type
-                if (currentFileType === 'image') {
-                    const img = document.createElement('img');
-                    img.src = URL.createObjectURL(blob);
-                    img.className = 'preview-image';
-                    previewContainer.appendChild(img);
-                } else if (currentFileType === 'audio') {
-                    const audio = document.createElement('audio');
-                    audio.controls = true;
-                    audio.src = URL.createObjectURL(blob);
-                    audio.className = 'preview-audio';
-                    previewContainer.appendChild(audio);
-                } else if (currentFileType === '3d') {
-                    const link = document.createElement('a');
-                    link.href = URL.createObjectURL(blob);
-                    link.download = `sample_${stage}.off`;
-                    link.className = 'btn btn-primary';
-                    link.textContent = `Download ${stage} 3D file`;
-                    previewContainer.appendChild(link);
-                } else if (currentFileType === 'text') {
-                    const text = await blob.text();
-                    const pre = document.createElement('pre');
-                    pre.className = 'preview-text';
-                    pre.textContent = text;
-                    previewContainer.appendChild(pre);
-                }
-            } catch (error) {
-                console.error('Error:', error);
-                alert(error.message || 'Failed to load sample');
             }
+        }
+
+        // Function to handle 3D processing
+        async function process3D() {
+            const file = document.getElementById('3dFile').files[0];
+            if (!file) return;
+
+            const formData = new FormData();
+            formData.append('file', file);
+
+            // Upload file
+            const uploadResponse = await fetch('/upload', {
+                method: 'POST',
+                body: formData
+            });
+            const uploadResult = await uploadResponse.json();
+
+            if (uploadResult.status === 'success') {
+                // Get preprocessing options
+                const preprocessingOptions = {
+                    normalize: document.getElementById('3dNormalize').checked,
+                    center: document.getElementById('3dCenter').checked
+                };
+
+                // Get augmentation options
+                const augmentationOptions = {
+                    scale: document.getElementById('3dScale').checked,
+                    noise: document.getElementById('3dNoise').checked
+                };
+
+                // Process the 3D model
+                const processResponse = await fetch('/preprocess', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        preprocessing: preprocessingOptions,
+                        augmentation: augmentationOptions
+                    })
+                });
+
+                const processResult = await processResponse.json();
+                if (processResult.status === 'success') {
+                    // Update previews
+                    load3DModel('original3D', processResult.original);
+                    load3DModel('preprocessed3D', processResult.preprocessed);
+                    load3DModel('augmented3D', processResult.augmented);
+
+                    // Update preview images
+                    for (let i = 0; i < 3; i++) {
+                        document.getElementById(`original3DView${i}`).src = processResult.original_views[i];
+                        document.getElementById(`preprocessed3DView${i}`).src = processResult.preprocessed_views[i];
+                        document.getElementById(`augmented3DView${i}`).src = processResult.augmented_views[i];
+                    }
+                }
+            }
+        }
+
+        // Function to load and display 3D models
+        function load3DModel(containerId, modelPath) {
+            const container = document.getElementById(containerId);
+            const scene = new THREE.Scene();
+            const camera = new THREE.PerspectiveCamera(75, container.clientWidth / container.clientHeight, 0.1, 1000);
+            const renderer = new THREE.WebGLRenderer();
+            
+            renderer.setSize(container.clientWidth, container.clientHeight);
+            container.appendChild(renderer.domElement);
+
+            // Load the model
+            const loader = new THREE.OBJLoader();
+            loader.load(modelPath, (object) => {
+                scene.add(object);
+                camera.position.z = 5;
+                renderer.render(scene, camera);
+            });
         }
     </script>
 </body>
