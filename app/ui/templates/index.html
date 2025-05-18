@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Data Processing Application</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', path='/css/style.css') }}">
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <div class="container">
+            <a class="navbar-brand" href="/">Data Processing App</a>
+        </div>
+    </nav>
+
+    <div class="container mt-4">
+        <div class="row">
+            <div class="col-md-12">
+                <div class="card">
+                    <div class="card-header">
+                        <ul class="nav nav-tabs card-header-tabs" id="dataTabs" role="tablist">
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link active" id="text-tab" data-bs-toggle="tab" data-bs-target="#textContent" type="button" role="tab">Text</button>
+                            </li>
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link" id="image-tab" data-bs-toggle="tab" data-bs-target="#imageContent" type="button" role="tab">Image</button>
+                            </li>
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link" id="audio-tab" data-bs-toggle="tab" data-bs-target="#audioContent" type="button" role="tab">Audio</button>
+                            </li>
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link" id="three-d-tab" data-bs-toggle="tab" data-bs-target="#threeDContent" type="button" role="tab">3D Model</button>
+                            </li>
+                        </ul>
+                    </div>
+                    <div class="card-body">
+                        <div class="tab-content" id="dataTabContent">
+                            <!-- Text Processing Tab -->
+                            <div class="tab-pane fade show active" id="textContent" role="tabpanel">
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <form id="textForm" enctype="multipart/form-data">
+                                            <div class="mb-3">
+                                                <label for="textFileInput" class="form-label">Upload Text File</label>
+                                                <input type="file" class="form-control" id="textFileInput" name="file" accept=".txt,.json,.csv">
+                                                <div class="form-text">Supported formats: TXT, JSON, CSV</div>
+                                            </div>
+                                            <div class="mb-3">
+                                                <h6>Preprocessing Options</h6>
+                                                <div class="form-check">
+                                                    <input class="form-check-input" type="checkbox" id="textCleaningPreprocessing" name="cleaning">
+                                                    <label class="form-check-label" for="textCleaningPreprocessing">Text Cleaning</label>
+                                                </div>
+                                                <div class="form-check">
+                                                    <input class="form-check-input" type="checkbox" id="textStopwordsPreprocessing" name="stopwords">
+                                                    <label class="form-check-label" for="textStopwordsPreprocessing">Remove Stop Words</label>
+                                                </div>
+                                                <div class="form-check">
+                                                    <input class="form-check-input" type="checkbox" id="textDowncasePreprocessing" name="downcase">
+                                                    <label class="form-check-label" for="textDowncasePreprocessing">Downcase</label>
+                                                </div>
+                                                <div class="form-check">
+                                                    <input class="form-check-input" type="checkbox" id="textStemmingPreprocessing" name="stemming">
+                                                    <label class="form-check-label" for="textStemmingPreprocessing">Stemming</label>
+                                                </div>
+                                                <div class="form-check">
+                                                    <input class="form-check-input" type="checkbox" id="textLemmatizationPreprocessing" name="lemmatization">
+                                                    <label class="form-check-label" for="textLemmatizationPreprocessing">Lemmatization</label>
+                                                </div>
+                                                <div class="form-check">
+                                                    <input class="form-check-input" type="checkbox" id="textTokenizationPreprocessing" name="tokenization">
+                                                    <label class="form-check-label" for="textTokenizationPreprocessing">Tokenization</label>
+                                                </div>
+                                            </div>
+                                            <div class="mb-3">
+                                                <h6>Augmentation Options</h6>
+                                                <div class="form-check">
+                                                    <input class="form-check-input" type="checkbox" id="textSynonymAugmentation" name="synonym">
+                                                    <label class="form-check-label" for="textSynonymAugmentation">Synonym Replacement</label>
+                                                </div>
+                                                <div class="form-check">
+                                                    <input class="form-check-input" type="checkbox" id="textInsertionAugmentation" name="insertion">
+                                                    <label class="form-check-label" for="textInsertionAugmentation">Random Insertion</label>
+                                                </div>
+                                            </div>
+                                            <button type="submit" class="btn btn-primary">Process Text</button>
+                                        </form>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div id="textPreviewContainer" class="preview-container">
+                                            <div class="preview-item">
+                                                <h4>Original Data</h4>
+                                                <div class="text-preview">No text uploaded yet</div>
+                                            </div>
+                                            <div class="preview-item">
+                                                <h4>Preprocessed Data</h4>
+                                                <div class="text-preview">No preprocessed text available</div>
+                                            </div>
+                                            <div class="preview-item">
+                                                <h4>Augmented Data</h4>
+                                                <div class="text-preview">No augmented text available</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Image Processing Tab -->
+                            <div class="tab-pane fade" id="imageContent" role="tabpanel">
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <form id="imageForm" enctype="multipart/form-data">
+                                            <div class="mb-3">
+                                                <label for="imageFileInput" class="form-label">Upload Image</label>
+                                                <input type="file" class="form-control" id="imageFileInput" name="file" accept=".jpg,.jpeg,.png,.bmp">
+                                                <div class="form-text">Supported formats: JPG, JPEG, PNG, BMP</div>
+                                            </div>
+                                            <div class="mb-3">
+                                                <h6>Preprocessing Options</h6>
+                                                <div class="form-check">
+                                                    <input class="form-check-input" type="checkbox" id="imageResizePreprocessing" name="resize">
+                                                    <label class="form-check-label" for="imageResizePreprocessing">Resizing</label>
+                                                </div>
+                                                <div class="form-check">
+                                                    <input class="form-check-input" type="checkbox" id="imageNormalizePreprocessing" name="normalize">
+                                                    <label class="form-check-label" for="imageNormalizePreprocessing">Normalization</label>
+                                                </div>
+                                            </div>
+                                            <div class="mb-3">
+                                                <h6>Augmentation Options</h6>
+                                                <div class="form-check">
+                                                    <input class="form-check-input" type="checkbox" id="imageRotationAugmentation" name="rotation">
+                                                    <label class="form-check-label" for="imageRotationAugmentation">Random Rotation</label>
+                                                </div>
+                                                <div class="form-check">
+                                                    <input class="form-check-input" type="checkbox" id="imageFlipAugmentation" name="flip">
+                                                    <label class="form-check-label" for="imageFlipAugmentation">Random Horizontal Flip</label>
+                                                </div>
+                                                <div class="form-check">
+                                                    <input class="form-check-input" type="checkbox" id="imageJitterAugmentation" name="jitter">
+                                                    <label class="form-check-label" for="imageJitterAugmentation">Color Jitter</label>
+                                                </div>
+                                            </div>
+                                            <button type="submit" class="btn btn-primary">Process Image</button>
+                                        </form>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div id="imagePreviewContainer" class="preview-container">
+                                            <div class="preview-item">
+                                                <h4>Original Data</h4>
+                                                <div class="img-preview">No image uploaded yet</div>
+                                            </div>
+                                            <div class="preview-item">
+                                                <h4>Preprocessed Data</h4>
+                                                <div class="img-preview">No preprocessed image available</div>
+                                            </div>
+                                            <div class="preview-item">
+                                                <h4>Augmented Data</h4>
+                                                <div class="img-preview">No augmented image available</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Audio Processing Tab -->
+                            <div class="tab-pane fade" id="audioContent" role="tabpanel">
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <form id="audioForm" enctype="multipart/form-data">
+                                            <div class="mb-3">
+                                                <label for="audioFileInput" class="form-label">Upload Audio</label>
+                                                <input type="file" class="form-control" id="audioFileInput" name="file" accept=".wav,.mp3,.ogg">
+                                                <div class="form-text">Supported formats: WAV, MP3, OGG</div>
+                                            </div>
+                                            <div class="mb-3">
+                                                <h6>Preprocessing Options</h6>
+                                                <div class="form-check">
+                                                    <input class="form-check-input" type="checkbox" id="audioResamplePreprocessing" name="resample">
+                                                    <label class="form-check-label" for="audioResamplePreprocessing">Resampling</label>
+                                                </div>
+                                            </div>
+                                            <div class="mb-3">
+                                                <h6>Augmentation Options</h6>
+                                                <div class="form-check">
+                                                    <input class="form-check-input" type="checkbox" id="audioNoiseAugmentation" name="noise">
+                                                    <label class="form-check-label" for="audioNoiseAugmentation">Adding Background Noise</label>
+                                                </div>
+                                                <div class="form-check">
+                                                    <input class="form-check-input" type="checkbox" id="audioStretchAugmentation" name="stretch">
+                                                    <label class="form-check-label" for="audioStretchAugmentation">Time Stretching</label>
+                                                </div>
+                                                <div class="form-check">
+                                                    <input class="form-check-input" type="checkbox" id="audioPitchAugmentation" name="pitch">
+                                                    <label class="form-check-label" for="audioPitchAugmentation">Pitch Shifting</label>
+                                                </div>
+                                            </div>
+                                            <button type="submit" class="btn btn-primary">Process Audio</button>
+                                        </form>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div id="audioPreviewContainer" class="preview-container">
+                                            <div class="preview-item">
+                                                <h4>Original Data</h4>
+                                                <div class="audio-preview">
+                                                    <p>No audio uploaded yet</p>
+                                                    <div class="waveform"></div>
+                                                    <div class="spectrogram"></div>
+                                                </div>
+                                            </div>
+                                            <div class="preview-item">
+                                                <h4>Preprocessed Data</h4>
+                                                <div class="audio-preview">
+                                                    <p>No preprocessed audio available</p>
+                                                    <div class="waveform"></div>
+                                                    <div class="spectrogram"></div>
+                                                </div>
+                                            </div>
+                                            <div class="preview-item">
+                                                <h4>Augmented Data</h4>
+                                                <div class="audio-preview">
+                                                    <p>No augmented audio available</p>
+                                                    <div class="waveform"></div>
+                                                    <div class="spectrogram"></div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- 3D Model Processing Tab -->
+                            <div class="tab-pane fade" id="threeDContent" role="tabpanel">
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <form id="threeDForm" enctype="multipart/form-data">
+                                            <div class="mb-3">
+                                                <label for="threeDFileInput" class="form-label">Upload 3D Model</label>
+                                                <input type="file" class="form-control" id="threeDFileInput" name="file" accept=".obj,.stl">
+                                                <div class="form-text">Supported formats: OBJ, STL</div>
+                                            </div>
+                                            <div class="mb-3">
+                                                <h6>Data Preprocessing</h6>
+                                                <div class="form-check">
+                                                    <input class="form-check-input" type="checkbox" id="threeDNormalizePreprocessing" name="normalize">
+                                                    <label class="form-check-label" for="threeDNormalizePreprocessing">Normalize</label>
+                                                </div>
+                                                <div class="form-check">
+                                                    <input class="form-check-input" type="checkbox" id="threeDCenterPreprocessing" name="center">
+                                                    <label class="form-check-label" for="threeDCenterPreprocessing">Centering</label>
+                                                </div>
+                                            </div>
+                                            <div class="mb-3">
+                                                <h6>Augmentation</h6>
+                                                <div class="form-check">
+                                                    <input class="form-check-input" type="checkbox" id="threeDRotationAugmentation" name="rotation">
+                                                    <label class="form-check-label" for="threeDRotationAugmentation">Random Rotation</label>
+                                                </div>
+                                                <div class="form-check">
+                                                    <input class="form-check-input" type="checkbox" id="threeDScaleAugmentation" name="scale">
+                                                    <label class="form-check-label" for="threeDScaleAugmentation">Scaling</label>
+                                                </div>
+                                                <div class="form-check">
+                                                    <input class="form-check-input" type="checkbox" id="threeDNoiseAugmentation" name="noise">
+                                                    <label class="form-check-label" for="threeDNoiseAugmentation">Noise</label>
+                                                </div>
+                                            </div>
+                                            <button type="submit" class="btn btn-primary">Process 3D Model</button>
+                                        </form>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div id="threeDPreviewContainer" class="preview-container">
+                                            <div class="preview-item">
+                                                <h4>Original Data</h4>
+                                                <div class="model-viewer" id="originalModelViewer">
+                                                    <p>No 3D model uploaded yet</p>
+                                                </div>
+                                            </div>
+                                            <div class="preview-item">
+                                                <h4>Preprocessed Data</h4>
+                                                <div class="model-viewer" id="preprocessedModelViewer">
+                                                    <p>No preprocessed model available</p>
+                                                </div>
+                                            </div>
+                                            <div class="preview-item">
+                                                <h4>Augmented Data</h4>
+                                                <div class="model-viewer" id="augmentedModelViewer">
+                                                    <p>No augmented model available</p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/OBJLoader.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/wavesurfer.js/6.6.3/wavesurfer.min.js"></script>
+    <script src="{{ url_for('static', path='/js/main.js') }}"></script>
+</body>
+</html> 
