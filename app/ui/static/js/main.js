@@ -28,8 +28,10 @@ async function processData(dataType, form) {
         augmentation[checkbox.name] = checkbox.checked;
     });
 
+    let submitButton; // Declare submitButton here
+
     try {
-        const submitButton = form.querySelector('button[type="submit"]');
+        submitButton = form.querySelector('button[type="submit"]'); // Assign submitButton here
         submitButton.disabled = true;
         submitButton.textContent = 'Processing...';
 
