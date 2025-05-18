@@ -13,7 +13,7 @@ import trimesh
 import numpy as np
 
 from ..core.config import current_data, FILE_TYPES, BASE_DIR
-from ..services.processors import TextProcessor, ImageProcessor, AudioProcessor, ThreeDProcessor
+from ..services import TextProcessor, ImageProcessor, AudioProcessor, ThreeDProcessor
 
 router = APIRouter()
 
@@ -47,99 +47,94 @@ async def upload_file(file: UploadFile = File(...)):
                 break
         
         if not file_type:
-            return {"status": "error", "error": "Unsupported file type"}
+            return JSONResponse(status_code=400, content={'status': 'error', 'error': 'Unsupported file type'})
         
         current_data["original"] = file_path
         current_data["file_type"] = file_type
         
         return {"status": "success", "file_type": file_type}
     except Exception as e:
-        return {"status": "error", "error": str(e)}
+        return JSONResponse(status_code=500, content={'status': 'error', 'error': str(e)})
 
 @router.post("/preprocess")
 async def preprocess_data_route(preprocessing: Dict[str, bool], augmentation: Dict[str, bool]):
     if not current_data.get("original") or not current_data.get("file_type"):
-        return {"status": "error", "error": "No file uploaded"}
+        return JSONResponse(status_code=400, content={'status': 'error', 'error': 'No file uploaded'})
     
     try:
         file_type = current_data["file_type"]
         file_path = current_data["original"]
         
+        result = {
+            "original": None,
+            "preprocessed": None,
+            "augmented": None
+        }
+
         if file_type == 'text':
             with open(file_path, 'r', encoding='utf-8') as f:
                 text = f.read()
-            result = TextProcessor.process(text, preprocessing, augmentation)
+            processed_data = TextProcessor.process(text, preprocessing, augmentation)
+            result["original"] = processed_data["original"]
+            result["preprocessed"] = processed_data["preprocessed"]
+            result["augmented"] = processed_data["augmented"]
             
-            # Save results
-            for stage in ['preprocessed', 'augmented']:
-                output_path = str(BASE_DIR / "data" / f"{stage}_{os.path.basename(file_path)}")
-                with open(output_path, 'w', encoding='utf-8') as f:
-                    f.write(result[stage])
-                current_data[stage] = output_path
-            
-            return {
-                "status": "success",
-                "original": result["original"],
-                "preprocessed": result["preprocessed"],
-                "augmented": result["augmented"]
-            }
+            # For text, return content directly
+            return {"status": "success", **result}
             
         elif file_type == 'image':
             image = Image.open(file_path)
-            result = ImageProcessor.process(image, preprocessing, augmentation)
+            processed_data = ImageProcessor.process(image, preprocessing, augmentation)
             
-            # Save results
-            for stage in ['preprocessed', 'augmented']:
-                output_path = str(BASE_DIR / "data" / f"{stage}_{os.path.basename(file_path)}")
-                static_path = str(BASE_DIR / "ui" / "static" / f"{stage}_{os.path.basename(file_path)}")
-                result[stage].save(output_path)
-                result[stage].save(static_path)
-                current_data[stage] = output_path
+            # Save processed images to static for serving
+            output_paths = {}
+            for stage in ['original', 'preprocessed', 'augmented']:
+                 # Ensure we have data for the stage
+                if processed_data[stage] is not None:
+                    # Create a unique filename for the processed image
+                    base_name = os.path.splitext(os.path.basename(file_path))[0]
+                    output_filename = f'{stage}_{base_name}.png' # Save as PNG
+                    output_path = str(BASE_DIR / "ui" / "static" / output_filename)
+                    processed_data[stage].save(output_path)
+                    output_paths[stage] = f'/static/{output_filename}'
             
-            return {
-                "status": "success",
-                "original": f"/static/{os.path.basename(file_path)}",
-                "preprocessed": f"/static/preprocessed_{os.path.basename(file_path)}",
-                "augmented": f"/static/augmented_{os.path.basename(file_path)}"
-            }
+            return {"status": "success", **output_paths}
             
         elif file_type == 'audio':
-            audio_data, sr = librosa.load(file_path)
-            result = AudioProcessor.process(audio_data, sr, preprocessing, augmentation)
-            
-            # Save results
-            for stage in ['preprocessed', 'augmented']:
-                output_path = str(BASE_DIR / "data" / f"{stage}_{os.path.basename(file_path)}")
-                static_path = str(BASE_DIR / "ui" / "static" / f"{stage}_{os.path.basename(file_path)}")
-                sf.write(output_path, result[stage][0], result[stage][1])
-                sf.write(static_path, result[stage][0], result[stage][1])
-                current_data[stage] = output_path
-            
-            return {
-                "status": "success",
-                "original": f"/static/{os.path.basename(file_path)}",
-                "preprocessed": f"/static/preprocessed_{os.path.basename(file_path)}",
-                "augmented": f"/static/augmented_{os.path.basename(file_path)}"
-            }
-            
+            audio_data, sr = sf.read(file_path)
+            processed_data = AudioProcessor.process(audio_data, sr, preprocessing, augmentation)
+
+            # Save processed audio to static for serving
+            output_paths = {}
+            for stage in ['original', 'preprocessed', 'augmented']:
+                if processed_data[stage] is not None:
+                     base_name = os.path.splitext(os.path.basename(file_path))[0]
+                     output_filename = f'{stage}_{base_name}.wav' # Save as WAV
+                     output_path = str(BASE_DIR / "ui" / "static" / output_filename)
+                     sf.write(output_path, processed_data[stage][0], processed_data[stage][1])
+                     output_paths[stage] = f'/static/{output_filename}'
+
+            return {"status": "success", **output_paths}
+
         elif file_type == '3d':
-            mesh = trimesh.load(file_path)
-            result = ThreeDProcessor.process(mesh, preprocessing, augmentation)
+            mesh = trimesh.load_mesh(file_path)
+            processed_data = ThreeDProcessor.process(mesh, preprocessing, augmentation)
+
+            # Save processed 3D models to static for serving (e.g., as OBJ)
+            output_paths = {}
+            for stage in ['original', 'preprocessed', 'augmented']:
+                 if processed_data[stage] is not None:
+                    base_name = os.path.splitext(os.path.basename(file_path))[0]
+                    output_filename = f'{stage}_{base_name}.obj' # Save as OBJ
+                    output_path = str(BASE_DIR / "ui" / "static" / output_filename)
+                    processed_data[stage].export(output_path)
+                    output_paths[stage] = f'/static/{output_filename}'
             
-            # Save results
-            for stage in ['preprocessed', 'augmented']:
-                output_path = str(BASE_DIR / "data" / f"{stage}_{os.path.basename(file_path)}")
-                static_path = str(BASE_DIR / "ui" / "static" / f"{stage}_{os.path.basename(file_path)}")
-                result[stage].export(output_path)
-                result[stage].export(static_path)
-                current_data[stage] = output_path
-            
-            return {
-                "status": "success",
-                "original": f"/static/{os.path.basename(file_path)}",
-                "preprocessed": f"/static/preprocessed_{os.path.basename(file_path)}",
-                "augmented": f"/static/augmented_{os.path.basename(file_path)}"
-            }
-            
+            return {"status": "success", **output_paths}
+
+        else:
+            return JSONResponse(status_code=400, content={'status': 'error', 'error': 'Unsupported file type for processing'})
+
     except Exception as e:
-        return {"status": "error", "error": str(e)} 
+        print(f"Error during processing: {e}")
+        return JSONResponse(status_code=500, content={'status': 'error', 'error': str(e)}) 

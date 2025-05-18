@@ -5,8 +5,6 @@ from pathlib import Path
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 # Create necessary directories
-os.makedirs(BASE_DIR / "static", exist_ok=True)
-os.makedirs(BASE_DIR / "templates", exist_ok=True)
 os.makedirs(BASE_DIR / "data", exist_ok=True)
 
 # File type configurations
